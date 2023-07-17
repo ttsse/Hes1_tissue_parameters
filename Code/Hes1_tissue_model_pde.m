@@ -1,3 +1,5 @@
+function [mean_solns, peak_offsets, mean_period_length] = Hes1_tissue_model_sequential_solve()
+
 clear all;
 close all;
 format long;
