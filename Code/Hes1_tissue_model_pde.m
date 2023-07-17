@@ -49,7 +49,7 @@ for i = 1:length(D_d)
             parameters = [alpha_d, alpha_m, alpha_p, alpha_n, ...
                 mu_d, mu_m, mu_p, mu_n, D_d(i), h(j), gamma(k)];
 
-            soln = pdepe(s,@(t,x,u,DuDx) tissue(t,x,u,DuDx,parameters),@homtissueics,@tissuebcs,x,t);
+            soln = pdepe(s,@(t,x,u,DuDx) tissue_pde(t,x,u,DuDx,parameters),@homtissueics,@tissuebcs,x,t);
             d = soln(:,:,1); % Dll1 solution
             m = soln(:,:,2); % Hes1 mRNA solution
             p = soln(:,:,3); % Hes1 protein solution
@@ -117,9 +117,9 @@ for i = 1:length(D_d)
             hp4 = get(subplot(2,2,4),'Position');
             colorbar('Position', [hp4(1)+hp4(3)+0.025  hp4(2)  0.025  hp4(2)+hp4(3)*2.1])
 
-            % save behaviour
-            filename1 = ['average_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '.jpg'];
-            filename2 = ['D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '.jpg'];
+            % save figures
+            filename1 = ['average_index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '.jpg'];
+            filename2 = ['index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '_index_' num2str(index) '.jpg'];
             saveas(figs1,filename1)
             saveas(figs2,filename2)
             close(figs1)
@@ -191,32 +191,4 @@ for i = 1:length(D_d)
 
         end
     end
-end
-
-
-% implementation of the tissue PDE model
-function [c,f,s] = tissue(x,t,u,DuDx,parameters)
-% System equations correlating to molecules u = [D, M, P, N]
-% parameters = [alpha_d, alpha_m, alpha_p, alpha_n, ...
-%    mu_d, mu_m, mu_p, mu_n, D_d, h, gamma];
-c = [1; 1; 1; 1];
-f = [parameters(9); 0; 0; 0] .* DuDx; % diffusion
-D = parameters(1) * u(4) - parameters(5) * u(1);
-M = parameters(2) * u(1) /(1 + u(3)^parameters(10)) - parameters(6) * u(2);
-P = parameters(3) * u(2) - parameters(7) * u(3);
-N = parameters(4) / (1 + u(3)^parameters(11)) - parameters(8) * u(4);
-s = [D; M; P; N];
-end
-
-% homogeneous initial conditions
-function u0 = homtissueics(x)
-u0 = [1; 2; 2; 1];
-end
-
-% boundary conditions (zero flux boundary condition)
-function [pl,ql,pr,qr] = tissuebcs(xl,ul,xr,ur,t)
-pl = [0; 0; 0; 0];
-ql = [1; 1; 1; 1];
-pr = [0; 0; 0; 0];
-qr = [1; 1; 1; 1];
 end
