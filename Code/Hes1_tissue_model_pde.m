@@ -118,10 +118,11 @@ for i = 1:length(D_d)
             colorbar('Position', [hp4(1)+hp4(3)+0.025  hp4(2)  0.025  hp4(2)+hp4(3)*2.1])
 
             % save figures
-            filename1 = ['average_index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '.jpg'];
-            filename2 = ['index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '_index_' num2str(index) '.jpg'];
-            saveas(figs1,filename1)
-            saveas(figs2,filename2)
+            path = './Figures';
+            filename1 = ['average_index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '.png'];
+            filename2 = ['index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '_index_' num2str(index) '.png'];
+            saveas(figs1,fullfile(path,filename1))
+            saveas(figs2,fullfile(path,filename2))
             close(figs1)
             close(figs2)
 
