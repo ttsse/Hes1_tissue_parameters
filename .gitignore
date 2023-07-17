@@ -2,3 +2,6 @@
 *.asv
 *.jpg
 Code/.DS_Store
+
+# Directories to ignore
+Code/Figures/
