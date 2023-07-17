@@ -31,21 +31,27 @@ Nt = T/dt;     % number of time points
 x = linspace(a,b,Nx+1);
 t = linspace(0,T,Nt+1);
 
+mean_solns = zeros(length(t),4);
+peak_offsets = zeros(3,1);
+mean_period_length = zeros(4,1); 
+
 soln = pdepe(s,@(t,x,u,DuDx) tissue(t,x,u,DuDx,parameters),@homtissueics,@tissuebcs,x,t);
 d = soln(:,:,1); % Dll1 solution
-p = soln(:,:,2); % Hes1 protein solution
-m = soln(:,:,3); % Hes1 mRNA solution
+m = soln(:,:,2); % Hes1 mRNA solution
+p = soln(:,:,3); % Hes1 protein solution
 n = soln(:,:,4); % Ngn2 solution
+
+mean_solns = [mean(d,2), mean(m,2), mean(p,2), mean(n,2)];
 
 % plot time behaviour of system averaged over all space points
 figure()
-plot(t, mean(d,2), '-g', 'Linewidth', 4, 'Displayname', 'Dll1')
+plot(t, mean_solns(:,1), '-g', 'Linewidth', 4, 'Displayname', 'Dll1')
 hold on
-plot(t, mean(p,2), '-b', 'Linewidth', 4, 'Displayname', 'Hes1 protein')
+plot(t, mean_solns(:,2), '-r', 'Linewidth', 4, 'Displayname', 'Hes1 mRNA')
 hold on
-plot(t, mean(m,2), '-r', 'Linewidth', 4, 'Displayname', 'Hes1 mRNA')
+plot(t, mean_solns(:,3), '-b', 'Linewidth', 4, 'Displayname', 'Hes1 protein')
 hold on
-plot(t, mean(n,2), '-k', 'Linewidth', 4, 'Displayname', 'Ngn2')
+plot(t, mean_solns(:,4), '-k', 'Linewidth', 4, 'Displayname', 'Ngn2')
 hold off
 legend('Fontsize', 13)
 xlabel('time (min)', 'Fontsize', 16)
@@ -98,8 +104,8 @@ colorbar('Position', [hp4(1)+hp4(3)+0.025  hp4(2)  0.025  hp4(2)+hp4(3)*2.1])
 
 % find offset of peaks of oscillations
 d_index = [];
-p_index = [];
 m_index = [];
+p_index = [];
 n_index = [];
 
 % special case for N: check if the local maximum is at the first time step
@@ -113,13 +119,13 @@ for i=2:(length(t)-1)
     if d(i,end)>d(i-1,end) && d(i,end)>d(i+1,end)
         d_index = [d_index,t(i)];
     end
-    % find local maxima of Hes1 protein
-    if p(i,end)>p(i-1,end) && p(i,end)>p(i+1,end)
-        p_index = [p_index,t(i)];
-    end
     % find local maxima of Hes1 mRNA
     if m(i,end)>m(i-1,end) && m(i,end)>m(i+1,end)
         m_index = [m_index,t(i)];
+    end
+    % find local maxima of Hes1 protein
+    if p(i,end)>p(i-1,end) && p(i,end)>p(i+1,end)
+        p_index = [p_index,t(i)];
     end
     % find local maxima of Ngn2
     if n(i,end)>n(i-1,end) && n(i,end)>n(i+1,end)
@@ -128,16 +134,16 @@ for i=2:(length(t)-1)
 end
 
 % compare same number of peaks for all variables
-min_peaks = min([length(d_index), length(p_index), ...
-    length(m_index), length(n_index)]);
+min_peaks = min([length(d_index), length(m_index), ...
+    length(p_index), length(n_index)]);
 d_index = d_index(1:(end-(length(d_index)-min_peaks)));
-p_index = p_index(1:(end-(length(p_index)-min_peaks)));
 m_index = m_index(1:(end-(length(m_index)-min_peaks)));
+p_index = p_index(1:(end-(length(p_index)-min_peaks)));
 n_index = n_index(1:(end-(length(n_index)-min_peaks)));
 
 d_period = zeros(length(d_index)-1,1);
-p_period = zeros(length(d_index)-1,1);
 m_period = zeros(length(d_index)-1,1);
+p_period = zeros(length(d_index)-1,1);
 n_period = zeros(length(d_index)-1,1);
 
 % find period of oscillation for all variables
@@ -148,31 +154,29 @@ for i=2:length(d_period)
     n_period(i-1) = n_index(i)- n_index(i-1);
 end
 
-avg_d_period = sum(d_period)/length(d_period)
-avg_m_period = sum(m_period)/length(d_period)
-avg_p_period = sum(p_period)/length(d_period)
-avg_n_period = sum(n_period)/length(d_period)
+mean_period_length = [mean(d_period), mean(m_period), mean(p_period), mean(n_period)];
 
+% find mean offset of maxima between Hes1 mRNA and protein
+peak_offset_m_p = mean(abs(m_index-p_index))
+% find mean offset of maxima between Hes1 protein and Dll1
+peak_offset_d_p = mean(abs(d_index-p_index))
+% find mean offset of maxima between Hes1 protein and Ngn2
+peak_offset_n_p = mean(abs(n_index-p_index))
 
-% find offset of local maxima between Hes1 mRNA and protein
-peak_offset_m_p = sum(abs(m_index-p_index))/length(m_index)
-% find offset of local maxima between Hes1 protein and Dll1
-peak_offset_d_p = sum(abs(d_index-p_index))/length(d_index)
-% find offset of local maxima between Hes1 protein and Ngn2
-peak_offset_n_p = sum(abs(n_index-p_index))/length(n_index)
+peak_offsets = [peak_offset_m_p, peak_offset_d_p, peak_offset_n_p];
 
 % implementation of the tissue PDE model
 function [c,f,s] = tissue(x,t,u,DuDx,parameters)
 c = [1; 1; 1; 1];
 f = [parameters(9); 0; 0; 0] .* DuDx; % diffusion
-% System equations correlating to molecules u = [D, P, M, N]
+% System equations correlating to molecules u = [D, M, P, N]
 % parameters = [alpha_d, alpha_m, alpha_p, alpha_n, ...
 %    mu_d, mu_m, mu_p, mu_n, D_d, h, gamma];
 D = parameters(1) * u(4) - parameters(5) * u(1);
-P = parameters(3) * u(3) - parameters(7) * u(2);
-M = parameters(2) * u(1) /(1 + u(2)^parameters(10)) - parameters(6) * u(3);
-N = parameters(4) / (1 + u(2)^parameters(11)) - parameters(8) * u(4);
-s = [D; P; M; N];
+M = parameters(2) * u(1) /(1 + u(3)^parameters(10)) - parameters(6) * u(2);
+P = parameters(3) * u(2) - parameters(7) * u(3);
+N = parameters(4) / (1 + u(3)^parameters(11)) - parameters(8) * u(4);
+s = [D; M; P; N];
 end
 
 % homogeneous initial conditions
