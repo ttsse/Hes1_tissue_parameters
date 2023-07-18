@@ -183,20 +183,22 @@ for i = 1:length(total_combinations)
         end
 
         mean_period_length(:,i) = [mean(d_period), mean(m_period), mean(p_period), mean(n_period)];
-        
+
+        % find mean offset of maxima between Hes1 mRNA and protein
+        peak_offset_m_p = mean(abs(m_index-p_index));
+        % find mean offset of maxima between Hes1 protein and Dll1
+        peak_offset_d_p = mean(abs(d_index-p_index));
+        % find mean offset of maxima between Hes1 protein and Ngn2
+        peak_offset_n_p = mean(abs(n_index-p_index));
+
+        peak_offsets(:,i) = [peak_offset_m_p, peak_offset_d_p, peak_offset_n_p];
+
     % otherwise mean period length is 0 as there are no stable
-    % oscillations and, thus, no average period length
+    % oscillations and, thus, no average period length. The same applies to
+    % the peak offset
     else
         mean_period_length(:,i) = [0, 0, 0, 0];
+        peak_offsets(:,i) = [0,0,0];
     end
-
-    % find mean offset of maxima between Hes1 mRNA and protein
-    peak_offset_m_p = mean(abs(m_index-p_index));
-    % find mean offset of maxima between Hes1 protein and Dll1
-    peak_offset_d_p = mean(abs(d_index-p_index));
-    % find mean offset of maxima between Hes1 protein and Ngn2
-    peak_offset_n_p = mean(abs(n_index-p_index));
-
-    peak_offsets(:,i) = [peak_offset_m_p, peak_offset_d_p, peak_offset_n_p];
 
 end
