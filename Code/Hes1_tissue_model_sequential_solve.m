@@ -29,11 +29,8 @@ t = linspace(0,T,Nt+1); % all time points
 
 % parameters used in parameter sweep
 D_d = linspace(0.001,0.1,2);
-% D_d = 0.003;
 h = linspace(1,9,2);
-%h = 1;
 gamma = linspace(1,9,2);
-%gamma = 8;
 total_combinations = length(D_d)*length(h)*length(gamma);
 
 mean_solns = zeros(total_combinations,length(t),4);
@@ -122,7 +119,7 @@ for i = 1:length(D_d)
             % save figures
             path = './Figures';
             filename1 = ['sequential_average_index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '.png'];
-            filename2 = ['sequential_index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '_index_' num2str(index) '.png'];
+            filename2 = ['sequential_index_' num2str(index) '_D_d_ ' num2str(D_d(i)) '_h_' num2str(h(j)) '_gamma_' num2str(gamma(k)) '.png'];
             saveas(figs1,fullfile(path,filename1))
             saveas(figs2,fullfile(path,filename2))
             close(figs1)
