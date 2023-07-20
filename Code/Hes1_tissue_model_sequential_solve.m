@@ -1,5 +1,4 @@
 function [mean_solns, peak_offsets, mean_period_length] = Hes1_tissue_model_sequential_solve()
-
 clear all;
 close all;
 format long;
@@ -28,9 +27,12 @@ x = linspace(a,b,Nx+1); % all space points
 t = linspace(0,T,Nt+1); % all time points
 
 % parameters used in parameter sweep
-D_d = linspace(0.001,0.1,2);
-h = linspace(1,9,2);
-gamma = linspace(1,9,2);
+D_d = [0.001,0.005,linspace(0.01,0.1,10)];
+h = linspace(1,4,7);
+gamma = linspace(1,9,17);
+% D_d = linspace(0.001, 0.1, 2);
+% h = linspace(1,9,2);
+% gamma = linspace(1,9,2);
 
 % make vector with all combinations possible of the three parameter arrays
 C = {gamma,h,D_d};
@@ -56,75 +58,6 @@ for i = 1:length(total_combinations)
     n = soln(:,:,4); % Ngn2 solution
 
     mean_solns(i,:,:) = [mean(d,2), mean(m,2), mean(p,2), mean(n,2)];
-
-
-    % plot time behaviour of system averaged over all space points
-    figs1 = figure('visible','off');
-    plot(t, mean_solns(i,:,1), '-g', 'Linewidth', 4, 'Displayname', 'Dll1')
-    hold on
-    plot(t, mean_solns(i,:,2), '-r', 'Linewidth', 4, 'Displayname', 'Hes1 mRNA')
-    hold on
-    plot(t, mean_solns(i,:,3), '-b', 'Linewidth', 4, 'Displayname', 'Hes1 protein')
-    hold on
-    plot(t, mean_solns(i,:,4), '-k', 'Linewidth', 4, 'Displayname', 'Ngn2')
-    hold off
-    legend('Fontsize', 13)
-    xlabel('time (min)', 'Fontsize', 16)
-    ylabel('expression', 'Fontsize', 16)
-    xticks(0:120:T);
-    a = get(gca,'XTickLabel');
-    set(gca,'XTickLabel',a,'Fontsize',13)
-
-    % plot behaviour for all space points
-    figs2 = figure('visible','off');
-    steps = 180;
-    subplot(2,2,1);
-    fig1 = pcolor(t,x,transpose(p));
-    set(fig1, 'EdgeColor', 'none');
-    title('A', 'Fontsize', 16)
-    xlabel('time (minutes)', 'Fontsize', 16)
-    ylabel('x (\mum)', 'Fontsize', 16)
-    xticks(0:steps:T);
-    set(gca,'layer','top')
-
-    subplot(2,2,2);
-    fig2 = pcolor(t,x,transpose(m));
-    set(fig2, 'EdgeColor', 'none');
-    title('B', 'Fontsize', 16)
-    xlabel('time (minutes)', 'Fontsize', 16)
-    ylabel('x (\mum)', 'Fontsize', 16)
-    xticks(0:steps:T);
-    set(gca,'layer','top')
-
-    subplot(2,2,3);
-    fig3 = pcolor(t,x,transpose(d));
-    set(fig3, 'EdgeColor', 'none');
-    title('C', 'Fontsize', 16)
-    xlabel('time (minutes)', 'Fontsize', 16)
-    ylabel('x (\mum)', 'Fontsize', 16)
-    xticks(0:steps:T);
-    set(gca,'layer','top')
-
-    subplot(2,2,4);
-    fig4 = pcolor(t,x,transpose(n));
-    set(fig4, 'EdgeColor', 'none');
-    title('D', 'Fontsize', 16)
-    xlabel('time (minutes)', 'Fontsize', 16)
-    ylabel('x (\mum)', 'Fontsize', 16)
-    xticks(0:steps:T);
-    set(gca,'layer','top')
-
-    hp4 = get(subplot(2,2,4),'Position');
-    colorbar('Position', [hp4(1)+hp4(3)+0.025  hp4(2)  0.025  hp4(2)+hp4(3)*2.1])
-
-    % save figures
-    path = './Figures';
-    filename1 = ['sequential_average_index_' num2str(i) '_D_d_ ' num2str(total_combinations(i,3)) '_h_' num2str(total_combinations(i,2)) '_gamma_' num2str(total_combinations(i,1)) '.png'];
-    filename2 = ['sequential_index_' num2str(i) '_D_d_ ' num2str(total_combinations(i,3)) '_h_' num2str(total_combinations(i,2)) '_gamma_' num2str(total_combinations(i,1)) '.png'];
-    saveas(figs1,fullfile(path,filename1))
-    saveas(figs2,fullfile(path,filename2))
-    close(figs1)
-    close(figs2)
 
     % find offset of peaks of oscillations
     d_index = [];
@@ -184,21 +117,94 @@ for i = 1:length(total_combinations)
 
         mean_period_length(:,i) = [mean(d_period), mean(m_period), mean(p_period), mean(n_period)];
 
-        % find mean offset of maxima between Hes1 mRNA and protein
-        peak_offset_m_p = mean(abs(m_index-p_index));
-        % find mean offset of maxima between Hes1 protein and Dll1
-        peak_offset_d_p = mean(abs(d_index-p_index));
-        % find mean offset of maxima between Hes1 protein and Ngn2
-        peak_offset_n_p = mean(abs(n_index-p_index));
+        % find offset of local maxima between Hes1 mRNA and protein
+        peak_offset_m_p = sum(abs(m_index-p_index))/length(m_index)
+        % find offset of local maxima between Hes1 protein and Dll1
+        peak_offset_d_p = sum(abs(d_index-p_index))/length(d_index)
+        % find offset of local maxima between Hes1 protein and Ngn2
+        peak_offset_n_p = sum(abs(n_index-p_index))/length(n_index)
 
         peak_offsets(:,i) = [peak_offset_m_p, peak_offset_d_p, peak_offset_n_p];
 
-    % otherwise mean period length is 0 as there are no stable
-    % oscillations and, thus, no average period length. The same applies to
-    % the peak offset
+        % plot time behaviour of system averaged over all space points
+        figs1 = figure('visible','off');
+        plot(t, mean_solns(i,:,1), '-g', 'Linewidth', 4, 'Displayname', 'Dll1')
+        hold on
+        plot(t, mean_solns(i,:,2), '-r', 'Linewidth', 4, 'Displayname', 'Hes1 mRNA')
+        hold on
+        plot(t, mean_solns(i,:,3), '-b', 'Linewidth', 4, 'Displayname', 'Hes1 protein')
+        hold on
+        plot(t, mean_solns(i,:,4), '-k', 'Linewidth', 4, 'Displayname', 'Ngn2')
+        hold off
+        legend('Fontsize', 13)
+        xlabel('time (min)', 'Fontsize', 16)
+        ylabel('expression', 'Fontsize', 16)
+        xticks(0:120:T);
+        a = get(gca,'XTickLabel');
+        set(gca,'XTickLabel',a,'Fontsize',13)
+
+        % plot behaviour for all space points
+        figs2 = figure('visible','off');
+        steps = 180;
+        subplot(2,2,1);
+        fig1 = pcolor(t,x,transpose(p));
+        set(fig1, 'EdgeColor', 'none');
+        title('A', 'Fontsize', 16)
+        xlabel('time (minutes)', 'Fontsize', 16)
+        ylabel('x (\mum)', 'Fontsize', 16)
+        xticks(0:steps:T);
+        set(gca,'layer','top')
+
+        subplot(2,2,2);
+        fig2 = pcolor(t,x,transpose(m));
+        set(fig2, 'EdgeColor', 'none');
+        title('B', 'Fontsize', 16)
+        xlabel('time (minutes)', 'Fontsize', 16)
+        ylabel('x (\mum)', 'Fontsize', 16)
+        xticks(0:steps:T);
+        set(gca,'layer','top')
+
+        subplot(2,2,3);
+        fig3 = pcolor(t,x,transpose(d));
+        set(fig3, 'EdgeColor', 'none');
+        title('C', 'Fontsize', 16)
+        xlabel('time (minutes)', 'Fontsize', 16)
+        ylabel('x (\mum)', 'Fontsize', 16)
+        xticks(0:steps:T);
+        set(gca,'layer','top')
+
+        subplot(2,2,4);
+        fig4 = pcolor(t,x,transpose(n));
+        set(fig4, 'EdgeColor', 'none');
+        title('D', 'Fontsize', 16)
+        xlabel('time (minutes)', 'Fontsize', 16)
+        ylabel('x (\mum)', 'Fontsize', 16)
+        xticks(0:steps:T);
+        set(gca,'layer','top')
+
+        hp4 = get(subplot(2,2,4),'Position');
+        colorbar('Position', [hp4(1)+hp4(3)+0.025  hp4(2)  0.025  hp4(2)+hp4(3)*2.1])
+
+        % save figures
+        path1 = './Figures';
+        filename1 = ['sequential_average_index_' num2str(i) '_D_d_ ' num2str(total_combinations(i,3)) '_h_' num2str(total_combinations(i,2)) '_gamma_' num2str(total_combinations(i,1)) '.png'];
+        filename2 = ['sequential_index_' num2str(i) '_D_d_ ' num2str(total_combinations(i,3)) '_h_' num2str(total_combinations(i,2)) '_gamma_' num2str(total_combinations(i,1)) '.png'];
+        saveas(figs1,fullfile(path1,filename1))
+        saveas(figs2,fullfile(path1,filename2))
+        close(figs1)
+        close(figs2)
+
+        % otherwise mean period length is 0 as there are no stable
+        % oscillations and, thus, no average period length. The same applies to
+        % the peak offset
     else
         mean_period_length(:,i) = [0, 0, 0, 0];
         peak_offsets(:,i) = [0,0,0];
     end
 
 end
+
+% save results
+path2 = './Results';
+matrixname = ['sequential_results_' num2str(length(total_combinations)) '.mat'];
+save(fullfile(path2,matrixname), 'mean_period_length', 'mean_solns', 'peak_offsets');
