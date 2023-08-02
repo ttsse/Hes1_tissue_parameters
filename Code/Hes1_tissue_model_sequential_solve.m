@@ -1,6 +1,5 @@
-function [mean_solns, peak_offsets, mean_period_length] = Hes1_tissue_model_sequential_solve()
+function [mean_solns, peak_offsets, mean_period_length] = Hes1_tissue_model_sequential_solve(D_d, h, gamma)
 tic
-clear all;
 close all;
 format long;
 
@@ -26,14 +25,6 @@ Nt = T/dt;     % number of time points
 
 x = linspace(a,b,Nx+1); % all space points
 t = linspace(0,T,Nt+1); % all time points
-
-% parameters used in parameter sweep
-% D_d = [0.001,0.005,linspace(0.01,0.1,10)];
-% h = linspace(1,4,7);
-% gamma = linspace(1,9,17);
-D_d = linspace(0.001, 0.1, 2);
-h = linspace(1,9,2);
-gamma = linspace(1,9,2);
 
 % make vector with all combinations possible of the three parameter arrays
 C = {gamma,h,D_d};
