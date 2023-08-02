@@ -29,12 +29,12 @@ x = linspace(a,b,Nx+1); % all space points
 t = linspace(0,T,Nt+1); % all time points
 
 % parameters used in parameter sweep
-D_d = [0.001,0.005,linspace(0.01,0.1,10)];
-h = linspace(1,4,7);
-gamma = linspace(1,9,17);
-% D_d = linspace(0.001, 0.1, 2);
-% h = linspace(1,9,2);
-% gamma = linspace(1,9,2);
+% D_d = [0.001,0.005,linspace(0.01,0.1,10)];
+% h = linspace(1,4,7);
+% gamma = linspace(1,9,17);
+D_d = linspace(0.001, 0.1, 2);
+h = linspace(1,9,2);
+gamma = linspace(1,9,2);
 
 % make vector with all combinations possible of the three parameter arrays
 C = {gamma,h,D_d};
@@ -46,72 +46,115 @@ mean_solns = zeros(length(total_combinations),length(t),4);
 peak_offsets = zeros(3,length(total_combinations));
 mean_period_length = zeros(4,length(total_combinations));
 
+% solve PDE system for all given parameter values in parallel
 parfor i = 1:length(total_combinations)
-
-    s = 0;
+    
+    s = 0; % symmetry constant for pdepe
     parameters = [alpha_d, alpha_m, alpha_p, alpha_n, ...
         mu_d, mu_m, mu_p, mu_n, total_combinations(i,3), ...
         total_combinations(i,2), total_combinations(i,1)];
 
+    % solve PDE for given parameter values
     soln = pdepe(s,@(t,x,u,DuDx) tissue_pde(t,x,u,DuDx,parameters),@homtissueics,@tissuebcs,x,t);
     d = soln(:,:,1); % Dll1 solution
     m = soln(:,:,2); % Hes1 mRNA solution
     p = soln(:,:,3); % Hes1 protein solution
     n = soln(:,:,4); % Ngn2 solution
 
+    % mean solution for each molecule (this should not differ significantly
+    % from individual solutions at each space point since the initial
+    % conditions are homogeneous)
     mean_solns(i,:,:) = [mean(d,2), mean(m,2), mean(p,2), mean(n,2)];
 
+    % find local maxima for each molecule
+    [~,d_index] = findpeaks(d(:,end));
+    [~,m_index] = findpeaks(m(:,end));
+    [~,p_index] = findpeaks(p(:,end));
+    [~,n_index] = findpeaks(n(:,end));
 
-    % find offset of peaks of oscillations
-    d_index = [];
-    m_index = [];
-    p_index = [];
-    n_index = [];
-
-    % special case for N: check if the local maximum is at the first time step
-    if n(1,end)>n(2,end)
-        n_index(end+1) = t(1);
+    % check first value for all molecules to check for a maximum
+    if d(1,end) > d(2,end)
+        d_index = [1; d_index];
     end
 
-    for v=2:(length(t)-1)
-
-        % find local maxima of Dll1
-        if d(v,end)>d(v-1,end) && d(v,end)>d(v+1,end)
-            d_index = [d_index,t(v)];
-        end
-        % find local maxima of Hes1 mRNA
-        if m(v,end)>m(v-1,end) && m(v,end)>m(v+1,end)
-            m_index = [m_index,t(v)];
-        end
-        % find local maxima of Hes1 protein
-        if p(v,end)>p(v-1,end) && p(v,end)>p(v+1,end)
-            p_index = [p_index,t(v)];
-        end
-        % find local maxima of Ngn2
-        if n(v,end)>n(v-1,end) && n(v,end)>n(v+1,end)
-            n_index = [n_index,t(v)];
-        end
+    if m(1,end) > m(2,end)
+        m_index = [1; m_index];
     end
+
+    if p(1,end) > p(2,end)
+        p_index = [1; p_index];
+    end
+
+    if n(1,end) > n(2,end)
+        n_index = [1; n_index];
+    end
+
+    % find local minima for each molecule
+    [~,d_index_min] = findpeaks(-1 * d(:,end));
+    [~,m_index_min] = findpeaks(-1 * m(:,end));
+    [~,p_index_min] = findpeaks(-1 * p(:,end));
+    [~,n_index_min] = findpeaks(-1 * n(:,end));
+
+    % check first value for all molecules to check for a minimum
+    if d(1,end) < d(2,end)
+        d_index_min = [1; d_index_min];
+    end
+
+    if m(1,end) < m(2,end)
+        m_index_min = [1; m_index_min];
+    end
+
+    if p(1,end) < p(2,end)
+        p_index_min = [1; p_index_min];
+    end
+
+    if n(1,end) < n(2,end)
+        n_index_min = [1; n_index_min];
+    end
+
+    % check the amplitude of the last 5 oscillations/maximum-minimum pairs
+    % found to determine if the oscillations are stable or not
+    if length(d_index) > 5 && length(d_index_min) > 5
+    % last 5 maxima of Dll1
+    d_last_5_max = d(d_index(end-5:end),end);
+
+    % last 5 minima of Dll1
+    d_last_5_min = d(d_index_min(end-5:end),end);
+
+    % mean peak prominence for the last 5 peaks
+    mean_peak_prom = mean(d_last_5_max - d_last_5_min);
+
+    else
+        mean_peak_prom = 0;
+    end
+
+    % mean level of Dll1 from time t=360 minutes to T=2000 minutes
+    mean_d_after_start = mean(d(3601:end,end));
 
     % compare same number of peaks for all variables
-    min_peaks = min([length(d_index), length(m_index), ...
-        length(p_index), length(n_index)]);
-    d_index = d_index(1:(end-(length(d_index)-min_peaks)));
-    m_index = m_index(1:(end-(length(m_index)-min_peaks)));
-    p_index = p_index(1:(end-(length(p_index)-min_peaks)));
-    n_index = n_index(1:(end-(length(n_index)-min_peaks)));
+    min_peaks = min([length(d_index), length(p_index), ...
+        length(m_index), length(n_index)]);
 
+    % check that oscillations are stable
+    % if the mean difference between the last 5 minima and maxima of Dll1
+    % is less than 5% the mean value of Dll1 after the initial start up
+    % period (calculated after t=360 minutes), then the oscillations are
+    % considered unstable (or if there are too few maxima in the beginning
+    % - threshold of maxima set to 5)
+    if (mean_peak_prom > 0.05*mean_d_after_start) && (min_peaks > 5)
 
-    % find average period length if the number of peaks (i.e.
-    % length(d_index)-1 is greater than 5 (to leave out small peaks
-    % occurring when oscillations are not stable)
-    if length(d_index)-1 >5
+        % truncate no. of indices to the shortest vector length
+        d_index = d_index(1:min_peaks);
+        p_index = p_index(1:min_peaks);
+        m_index = m_index(1:min_peaks);
+        n_index = n_index(1:min_peaks);
+
         d_period = zeros(length(d_index)-1,1);
         m_period = zeros(length(d_index)-1,1);
         p_period = zeros(length(d_index)-1,1);
         n_period = zeros(length(d_index)-1,1);
 
-        % find period of oscillation for all variables
+        % find period of oscillation for all variables (in minutes)
         for w=2:length(d_period)
             d_period(w-1) = d_index(w)- d_index(w-1);
             m_period(w-1) = m_index(w)- m_index(w-1);
@@ -119,16 +162,17 @@ parfor i = 1:length(total_combinations)
             n_period(w-1) = n_index(w)- n_index(w-1);
         end
 
-        mean_period_length(:,i) = [mean(d_period), mean(m_period), mean(p_period), mean(n_period)];
+        mean_period_length(:,i) = t(round(mean([d_period, m_period, p_period, n_period])));
 
         % find offset of local maxima between Hes1 mRNA and protein
-        peak_offset_m_p = sum(abs(m_index-p_index))/length(m_index)
+        peak_offset_m_p = sum(abs(m_index-p_index))/min_peaks;
         % find offset of local maxima between Hes1 protein and Dll1
-        peak_offset_d_p = sum(abs(d_index-p_index))/length(d_index)
+        peak_offset_d_p = sum(abs(d_index-p_index))/min_peaks;
         % find offset of local maxima between Hes1 protein and Ngn2
-        peak_offset_n_p = sum(abs(n_index-p_index))/length(n_index)
+        peak_offset_n_p = sum(abs(n_index-p_index))/min_peaks;
 
-        peak_offsets(:,i) = [peak_offset_m_p, peak_offset_d_p, peak_offset_n_p];
+        % offsets between oscillations of different molecules (in minutes)
+        peak_offsets(:,i) = t(round([peak_offset_m_p, peak_offset_d_p, peak_offset_n_p]));
 
         % plot time behaviour of system averaged over all space points
         figs1 = figure('visible','off');
@@ -211,4 +255,4 @@ end
 % save results
 path2 = './Results';
 matrixname = ['parallel_results_' num2str(length(total_combinations)) '.mat'];
-save(fullfile(path2,matrixname), 'mean_period_length', 'mean_solns', 'peak_offsets');
+save(fullfile(path2,matrixname), 'total_combinations', 'mean_period_length', 'mean_solns', 'peak_offsets');
