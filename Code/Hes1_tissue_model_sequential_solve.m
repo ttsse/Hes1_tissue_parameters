@@ -1,7 +1,27 @@
-function [mean_solns, peak_offsets, mean_period_length] = Hes1_tissue_model_sequential_solve(D_d, h, gamma)
+function [mean_solns, peak_offsets, mean_period_length, total_combinations, is_parallel] = ...
+          Hes1_tissue_model_sequential_solve(D_d, h, gamma)
 tic
 close all;
 format long;
+
+if D_d <= 0
+    error('MathBiology:negativeParameters', 'D_d needs to be positive.')
+elseif h <= 0
+    error('MathBiology:negativeParameters', 'h needs to be positive.')
+elseif gamma <= 0
+    error('MathBiology:negativeParameters', 'gamma needs to be positive.')
+elseif isempty(D_d)
+    error('MATLAB:notEnoughInputs', 'D_d cannot be empty.')
+elseif isempty(h)
+    error('MATLAB:notEnoughInputs', 'h cannot be empty.')
+elseif isempty(gamma)
+    error('MATLAB:notEnoughInputs', 'gamma cannot be empty')
+end
+
+
+%assert(D_d > 0, 'MathBiology:negativeParameters', 'D_d needs to be positive.')
+% assert(h > 0, 'MathBiology:negativeParameters', 'h needs to be positive.')
+% assert(gamma > 0, 'MathBiology:negativeParameters', 'gamma needs to be positive.')
 
 % define parameters of the system
 alpha_d = 0.05;
@@ -32,12 +52,13 @@ D = C;
 [D{:}] = ndgrid(C{:});
 total_combinations = cell2mat(cellfun(@(m)m(:),D,'uni',0));
 
-mean_solns = zeros(length(total_combinations),length(t),4);
-peak_offsets = zeros(3,length(total_combinations));
-mean_period_length = zeros(4,length(total_combinations));
+mean_solns = zeros(size(total_combinations,1),length(t),4);
+peak_offsets = zeros(3,size(total_combinations,1));
+mean_period_length = zeros(4,size(total_combinations,1));
+is_parallel = zeros(size(total_combinations,1),1);
 
 % sequentially solve PDE system for all given parameter values
-for i = 1:length(total_combinations)
+for i = 1:size(total_combinations,1)
 
     s = 0; % symmetry constant for pdepe
     parameters = [alpha_d, alpha_m, alpha_p, alpha_n, ...
@@ -240,6 +261,8 @@ for i = 1:length(total_combinations)
         peak_offsets(:,i) = [0,0,0];
     end
 
+    % check that code actually runs in parallel
+    is_parallel(i) = parallel.internal.pool.isPoolThreadWorker||~isempty(getCurrentJob);
 end
 
 % save results
