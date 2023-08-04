@@ -8,15 +8,15 @@ import matlab.unittest.diagnostics.Diagnostic;
 import matlab.unittest.constraints.Throws;
 
 % generate constraint met when given error ID is throwns
-throws = Throws(errID);
+% throws = Throws(errID);
 
 % check that function throws the right error ID
-passed = throws.satisfiedBy(func);
+passed = Throws(errID).satisfiedBy(func);
 diagnostic_text = "";
 
 % output own input as error message instead if wrong error is thrown
 if ~passed
-    diag = Diagnostic.join(varargin{:}, throws.getDiagnosticFor(func));
+    diag = Diagnostic.join(varargin{:}, Throws(errID).getDiagnosticFor(func));
     arrayfun(@diagnose, diag);
     diagnostic_text = strjoin({diag.DiagnosticText},[newline newline]);
 end

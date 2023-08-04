@@ -4,6 +4,7 @@ tic
 close all;
 format long;
 
+% check that input is in the right format
 if D_d <= 0
     error('MathBiology:negativeParameters', 'D_d needs to be positive.')
 elseif h <= 0
@@ -17,11 +18,6 @@ elseif isempty(h)
 elseif isempty(gamma)
     error('MATLAB:notEnoughInputs', 'gamma cannot be empty')
 end
-
-
-%assert(D_d > 0, 'MathBiology:negativeParameters', 'D_d needs to be positive.')
-% assert(h > 0, 'MathBiology:negativeParameters', 'h needs to be positive.')
-% assert(gamma > 0, 'MathBiology:negativeParameters', 'gamma needs to be positive.')
 
 % define parameters of the system
 alpha_d = 0.05;
