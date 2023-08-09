@@ -25,18 +25,26 @@ Hes1_tissue_model_sequential_solve(min_values(1,:), min_values(2,:), min_values(
 
 Hes1_tissue_model_sequential_solve(mid_D_d, mid_h, mid_gamma);
 
-%% Test 3 Sequential 1428 Iterations
+%% Test 3 Sequential 756 Iterations
+
+Hes1_tissue_model_sequential_solve(max_D_d, mid_h, mid_gamma);
+
+%% Test 4 Sequential 1428 Iterations
 
 Hes1_tissue_model_sequential_solve(max_D_d, max_h, max_gamma);
 
-%% Test 4 Parallel 8 Iterations
+%% Test 5 Parallel 8 Iterations
 
 Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:));
 
-%% Test 5 Parallel 189 Iterations
+%% Test 6 Parallel 189 Iterations
 
 Hes1_tissue_model_parallel_solve(mid_D_d, mid_h, mid_gamma);
 
-%% Test 6 Parallel 1428 Iterations
+%% Test 7 Parallel 756 Iterations
+
+Hes1_tissue_model_parallel_solve(max_D_d, mid_h, mid_gamma);
+
+%% Test 8 Parallel 1428 Iterations
 
 Hes1_tissue_model_parallel_solve(max_D_d, max_h, max_gamma);
