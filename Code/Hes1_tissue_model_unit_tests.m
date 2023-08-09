@@ -1,4 +1,5 @@
 % test parameter values
+
 original_values = [0.003; 1; 8]; % from masters thesis
 
 % minimum parameter sweep with two values each
@@ -17,10 +18,9 @@ neg_gamma = [0.003; 1; -8];
 all_neg = [-0.003; -1; -8];
 
 % parameter values empty
-no_D_d = [[]; 1; 8];
-no_h = [0.003; []; 8];
-no_gamma = [0.003; 1; []];
-no_values = [[]; []; []];
+no_D_d = [1; 8];
+no_h = [0.003; 8];
+no_gamma = [0.003; 1];
 
 % tolerance for comparison of results
 tol = 1e-6;
@@ -83,7 +83,56 @@ assertError(@() Hes1_tissue_model_parallel_solve(neg_gamma(1,:), neg_gamma(2,:),
 assertError(@() Hes1_tissue_model_parallel_solve(all_neg(1,:), all_neg(2,:), all_neg(3,:)), ...
     'MathBiology:negativeParameters','D_d needs to be positive.');
 
-%% Test 2 Non-Negative Mean Results
+%% Test 2 Positive Number of Iterations
+
+% sequential solver
+
+% original values
+[~, ~, ~, total_combinations, ~] = Hes1_tissue_model_sequential_solve(original_values(1,:), original_values(2,:), original_values(3,:));
+assert(~isempty(total_combinations))
+
+% minimum parameter sweep values
+[~, ~, ~, total_combinations, ~] = Hes1_tissue_model_sequential_solve(min_values(1,:), min_values(2,:), min_values(3,:));
+assert(~isempty(total_combinations))
+
+% check that right errors are output for missing values
+assertError(@() Hes1_tissue_model_parallel_solve([], no_D_d(1,:), no_D_d(2,:)), ...
+    'MATLAB:notEnoughInputs', 'D_d cannot be empty.');
+
+assertError(@() Hes1_tissue_model_parallel_solve(no_h(1,:), [], no_h(2,:)), ...
+    'MATLAB:notEnoughInputs', 'h cannot be empty.');
+
+assertError(@() Hes1_tissue_model_parallel_solve(no_gamma(1,:), no_gamma(2,:), []), ...
+    'MATLAB:notEnoughInputs', 'gamma cannot be empty.');
+
+assertError(@() Hes1_tissue_model_parallel_solve([], [], []), ...
+    'MATLAB:notEnoughInputs', 'D_d cannot be empty.');
+
+
+% parallel solver
+
+% original values
+[~, ~, ~, total_combinations, ~] = Hes1_tissue_model_parallel_solve(original_values(1,:), original_values(2,:), original_values(3,:));
+assert(~isempty(total_combinations))
+
+% minimum parameter sweep values
+[~, ~, ~, total_combinations, ~] = Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:));
+assert(~isempty(total_combinations))
+
+% check that right errors are output for missing values
+assertError(@() Hes1_tissue_model_parallel_solve([], no_D_d(1,:), no_D_d(2,:)), ...
+    'MATLAB:notEnoughInputs', 'D_d cannot be empty.');
+
+assertError(@() Hes1_tissue_model_parallel_solve(no_h(1,:), [], no_h(2,:)), ...
+    'MATLAB:notEnoughInputs', 'h cannot be empty.');
+
+assertError(@() Hes1_tissue_model_parallel_solve(no_gamma(1,:), no_gamma(2,:), []), ...
+    'MATLAB:notEnoughInputs', 'gamma cannot be empty.');
+
+assertError(@() Hes1_tissue_model_parallel_solve([], [], []), ...
+    'MATLAB:notEnoughInputs', 'D_d cannot be empty.');
+
+%% Test 3 Non-Negative Mean Results
 
 % sequential solver
 
@@ -105,29 +154,30 @@ assert(all(mean_solns(:)))
 [mean_solns, ~, ~, ~, ~] = Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:));
 assert(all(mean_solns(:)))
 
-%% Test 3 Positive Number of Iterations
+%% Test 4 Check Parallel Usage
 
-% sequential solver
-
-% original values
-[~, ~, ~, total_combinations, ~] = Hes1_tissue_model_sequential_solve(original_values(1,:), original_values(2,:), original_values(3,:));
-assert(~isempty(total_combinations))
-
-% minimum parameter sweep values
-[~, ~, ~, total_combinations, ~] = Hes1_tissue_model_sequential_solve(min_values(1,:), min_values(2,:), min_values(3,:));
-assert(~isempty(total_combinations))
-
-% parallel solver
+% check that sequential code runs sequentially (i.e. not using parallel
+% workers)
 
 % original values
-[~, ~, ~, total_combinations, ~] = Hes1_tissue_model_parallel_solve(original_values(1,:), original_values(2,:), original_values(3,:));
-assert(~isempty(total_combinations))
+[~, ~, ~, ~, is_parallel_seq] = Hes1_tissue_model_sequential_solve(original_values(1,:), original_values(2,:), original_values(3,:));
+assert(all(is_parallel_seq(:) == 0))
 
 % minimum parameter sweep values
-[~, ~, ~, total_combinations, ~] = Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:));
-assert(~isempty(total_combinations))
+[~, ~, ~, ~, is_parallel_seq] = Hes1_tissue_model_sequential_solve(min_values(1,:), min_values(2,:), min_values(3,:));
+assert(all(is_parallel_seq(:) == 0))
 
-%% Test 4 Sequential-Parallel Comparison
+% check that parallel code runs in parallel (i.e. using parallel workers)
+
+% original values
+[~, ~, ~, ~, is_parallel_par] = Hes1_tissue_model_parallel_solve(original_values(1,:), original_values(2,:), original_values(3,:));
+assert(all(is_parallel_par(:) == 1))
+
+% minimum parameter sweep values
+[~, ~, ~, ~, is_parallel_par] = Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:));
+assert(all(is_parallel_par(:) == 1))
+
+%% Test 5 Sequential-Parallel Comparison
 
 % original values
 
@@ -166,26 +216,3 @@ assert(all(abs_mean_solns(:) < tol))
 assert(all(abs_peak_offsets(:) < tol))
 assert(all(abs_mean_period_length(:) < tol))
 assert(all(abs_total_combinations(:) < tol))
-
-%% Test 5 Check Parallel Usage
-
-% check that sequential code runs sequentially (i.e. not using parallel
-% workers)
-
-% original values
-[~, ~, ~, ~, is_parallel_seq] = Hes1_tissue_model_sequential_solve(original_values(1,:), original_values(2,:), original_values(3,:));
-assert(all(is_parallel_seq(:) == 0))
-
-% minimum parameter sweep values
-[~, ~, ~, ~, is_parallel_seq] = Hes1_tissue_model_sequential_solve(min_values(1,:), min_values(2,:), min_values(3,:));
-assert(all(is_parallel_seq(:) == 0))
-
-% check that parallel code runs in parallel (i.e. using parallel workers)
-
-% original values
-[~, ~, ~, ~, is_parallel_par] = Hes1_tissue_model_parallel_solve(original_values(1,:), original_values(2,:), original_values(3,:));
-assert(all(is_parallel_par(:) == 1))
-
-% minimum parameter sweep values
-[~, ~, ~, ~, is_parallel_par] = Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:));
-assert(all(is_parallel_par(:) == 1))
