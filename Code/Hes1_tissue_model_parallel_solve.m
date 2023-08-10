@@ -62,7 +62,7 @@ parfor i = 1:size(total_combinations,1)
         total_combinations(i,2), total_combinations(i,1)];
 
     % solve PDE for given parameter values
-    soln = pdepe(s,@(t,x,u,DuDx) tissue_pde(t,x,u,DuDx,parameters),@homtissueics,@tissuebcs,x,t);
+    soln = pdepe(s,@(t,x,u,DuDx) tissue_pde(t,x,u,DuDx,parameters),@hettissueics,@tissuebcs,x,t);
     d = soln(:,:,1); % Dll1 solution
     m = soln(:,:,2); % Hes1 mRNA solution
     p = soln(:,:,3); % Hes1 protein solution
