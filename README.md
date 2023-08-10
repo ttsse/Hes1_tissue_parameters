@@ -1,5 +1,5 @@
 # Parameter Sweep for Hes1 Tissue Model
-We initially solve the PDE system
+We try to find parameters which result in stable oscillations for the given PDE system
 
 $$
 \begin{align}
