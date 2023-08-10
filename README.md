@@ -46,6 +46,8 @@ The code is written in the MATLAB computational environment. The used release is
 
 
 ## Executing the Code
+
+### Main Parameter Sweep Files
 To execute the parameter sweep using the sequential solver, the file `Hes1_tissue_parameter_sweep_results.m` runs the sequential solver for given parameter ranges and analyses relevant results after successful completion.
 
 Otherwise, the sequential and parallel solver can be run in the command line using 
@@ -60,6 +62,9 @@ OR
 
 respectively. In this case, the user has to define the parameter ranges used for `D_d`, `h` and `gamma` manually.
 
+> :warning: **As a warning: both solvers solve all results according to specific requirements which can be a substantial amount of files. If this is not wanted, it is best to comment out the corresponding lines using the `save` and `saveas` commands.**
+
+### Tests
 The tests are split into two files `Hes1_tissue_model_unit_tests.m` and `Hes1_tissue_model_performance_tests` which can be run individually using the command line inputs
 
 `runtests('Hes1_tissue_model_unit_tests')`
