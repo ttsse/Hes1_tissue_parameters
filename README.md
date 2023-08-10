@@ -43,3 +43,29 @@ The code is written in the MATLAB computational environment. The used release is
 | Simulink                                  | '10.4'  |
 | Statistics and Machine Learning Toolbox   | '12.2'  |
 | Computer Vision Toolbox                   | '10.1'  |
+
+
+## Executing the Code
+To execute the parameter sweep using the sequential solver, the file `Hes1_tissue_parameter_sweep_results.m` runs the sequential solver for given parameter ranges and analyses relevant results after successful completion.
+
+Otherwise, the sequential and parallel solver can be run in the command line using 
+
+`[mean_solns, peak_offsets, mean_period_length, total_combinations, is_parallel] = ...
+          Hes1_tissue_model_sequential_solve(D_d, h, gamma)`
+
+OR
+
+`[mean_solns, peak_offsets, mean_period_length, total_combinations, is_parallel] = ...
+          Hes1_tissue_model_parallel_solve(D_d, h, gamma)`
+
+respectively. In this case, the user has to define the parameter ranges used for `D_d`, `h` and `gamma` manually.
+
+The tests are split into two files `Hes1_tissue_model_unit_tests.m` and `Hes1_tissue_model_performance_tests` which can be run individually using the command line inputs
+
+`runtests('Hes1_tissue_model_unit_tests')`
+
+OR
+
+`runperf('Hes1_tissue_model_performance_tests')`.
+
+Alternatively, the script `run_tests.m` runs both the unit and performance tests as well as generating a graphical overview of the performance test.
