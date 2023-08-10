@@ -25,4 +25,21 @@ Since data concerning the required parameter values are difficult to determine, 
 
 
 ## Computational Environment
-Matlab release R2021b Update 6 (version number: 9.11.0.2207237)
+The code is written in the MATLAB computational environment. The used release is MATLAB release R2021b Update 6 (version number: 9.11). Apart from that, the code (including the tests) uses the following toolboxes:
+
+| Toolbox                                   | Version |
+|-------------------------------------------|---------|
+| Signal Processing Toolbox                 | '8.7'   |
+| Parallel Computing Toolbox                | '7.5'   |
+| MATLAB Parallel Server                    | '7.5'   |
+| Polyspace Bug Finder                      | '3.5'   |
+| Antenna Toolbox                           | '5.1'   |
+| Curve Fitting Toolbox                     | '3.6'   |
+| Deep Learning HDL Toolbox                 | '1.2'   |
+| Fixed-Point Designer                      | '7.3'   |
+| System Identification Toolbox             | '9.15'  |
+| MATLAB Coder                              | '5.3'   |
+| Optimization Toolbox                      | '9.2'   |
+| Simulink                                  | '10.4'  |
+| Statistics and Machine Learning Toolbox   | '12.2'  |
+| Computer Vision Toolbox                   | '10.1'  |
