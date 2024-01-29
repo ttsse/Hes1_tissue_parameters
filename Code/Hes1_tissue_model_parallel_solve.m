@@ -1,5 +1,6 @@
 function [mean_solns, peak_offsets, mean_period_length, total_combinations, is_parallel] = ...
-          Hes1_tissue_model_parallel_solve(D_d, h, gamma)
+          Hes1_tissue_model_parallel_solve(D_d, h, gamma,fixed)
+
 tic
 close all;
 format long;
@@ -53,8 +54,22 @@ peak_offsets = zeros(3,size(total_combinations,1));
 mean_period_length = zeros(4,size(total_combinations,1));
 is_parallel = zeros(size(total_combinations,1),1);
 
+% Start a new parallel pool one if one does not exist
+pool = gcp();
+if isempty(pool)
+    pool = parpool('Processes');
+end
+
+% set parfor Options
+if fixed == 1
+    opts = parforOptions(pool', 'RangePartitionMethod', 'fixed', ...
+    'SubrangeSize', 200);
+else
+    opts = parforOptions(pool', 'RangePartitionMethod', 'auto');
+end
+
 % solve PDE system for all given parameter values in parallel
-parfor i = 1:size(total_combinations,1)
+parfor(i = 1:size(total_combinations,1),opts)
     
     s = 0; % symmetry constant for pdepe
     parameters = [alpha_d, alpha_m, alpha_p, alpha_n, ...
@@ -263,6 +278,10 @@ end
 
 % save results
 path2 = './Results';
-matrixname = ['parallel_results_' num2str(length(total_combinations)) '.mat'];
+if fixed == 1
+    matrixname = ['parallel_results_' num2str(length(total_combinations)) '_specified.mat'];
+else
+    matrixname = ['parallel_results_' num2str(length(total_combinations)) '_auto.mat'];
+end
 save(fullfile(path2,matrixname), 'total_combinations', 'mean_period_length', 'mean_solns', 'peak_offsets');
-toc
+tEnd = toc
