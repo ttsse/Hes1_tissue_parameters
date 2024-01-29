@@ -6,19 +6,40 @@ close all;
 format long;
 
 % check that input is in the right format
-if D_d <= 0
-    error('MathBiology:negativeParameters', 'D_d needs to be positive.')
-elseif h <= 0
-    error('MathBiology:negativeParameters', 'h needs to be positive.')
-elseif gamma <= 0
-    error('MathBiology:negativeParameters', 'gamma needs to be positive.')
-elseif isempty(D_d)
-    error('MATLAB:notEnoughInputs', 'D_d cannot be empty.')
-elseif isempty(h)
-    error('MATLAB:notEnoughInputs', 'h cannot be empty.')
-elseif isempty(gamma)
-    error('MATLAB:notEnoughInputs', 'gamma cannot be empty')
+% first need to be sure there are enough inputs
+if nargin < 3
+    % use your suitable error id here
+    error('MyError:InadequateInput','Not enough inputs');      
 end
+
+% then check if the inputs have empty entries
+%  before checking if they are nonsense
+if isempty(D_d)
+    error('MATLAB:notEnoughInputs', 'D_d cannot be empty.');
+elseif ~isnumeric(D_d) % also need to make sure they have numeric entries
+    % use your suitable error id here
+    error('MyError:nonNumericInputs', 'D_d entries must be numeric.');
+elseif D_d<=0
+    error('MathBiology:negativeParameters', 'D_d needs to be positive.');
+end
+
+if isempty(h)
+    error('MATLAB:notEnoughInputs', 'h cannot be empty.');
+elseif ~isnumeric(h)
+    % use your suitable error id here
+    error('MyError:nonNumericInputs', 'h must be numeric.');
+elseif h<=0
+    error('MathBiology:negativeParameters', 'h needs to be positive.');
+end 
+
+if isempty(gamma)
+    error('MATLAB:notEnoughInputs', 'gamma cannot be empty');
+elseif ~isnumeric(gamma)
+    % use your suitable error id here
+    error('MyError:nonNumericInputs', 'gamma must be numeric.');
+elseif gamma<=0
+    error('MathBiology:negativeParameters', 'gamma needs to be positive.');
+end 
 
 % define parameters of the system
 alpha_d = 0.05;
