@@ -33,18 +33,34 @@ Hes1_tissue_model_sequential_solve(max_D_d, mid_h, mid_gamma);
 
 Hes1_tissue_model_sequential_solve(max_D_d, max_h, max_gamma);
 
-%% Test 5 Parallel 8 Iterations
+%% Test 5 Parallel 8 Iterations (Automatic Parallel Pool Partition)
 
-Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:));
+Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:),0);
 
-%% Test 6 Parallel 189 Iterations
+%% Test 6 Parallel 189 Iterations (Automatic Parallel Pool Partition)
 
-Hes1_tissue_model_parallel_solve(mid_D_d, mid_h, mid_gamma);
+Hes1_tissue_model_parallel_solve(mid_D_d, mid_h, mid_gamma,0);
 
-%% Test 7 Parallel 756 Iterations
+%% Test 7 Parallel 756 Iterations (Automatic Parallel Pool Partition)
 
-Hes1_tissue_model_parallel_solve(max_D_d, mid_h, mid_gamma);
+Hes1_tissue_model_parallel_solve(max_D_d, mid_h, mid_gamma,0);
 
-%% Test 8 Parallel 1428 Iterations
+%% Test 8 Parallel 1428 Iterations (Automatic Parallel Pool Partition)
 
-Hes1_tissue_model_parallel_solve(max_D_d, max_h, max_gamma);
+Hes1_tissue_model_parallel_solve(max_D_d, max_h, max_gamma,0);
+
+%% Test 9 Parallel 8 Iterations (Specified Parallel Pool Partition)
+
+Hes1_tissue_model_parallel_solve(min_values(1,:), min_values(2,:), min_values(3,:),1);
+
+%% Test 10 Parallel 189 Iterations (Specified Parallel Pool Partition)
+
+Hes1_tissue_model_parallel_solve(mid_D_d, mid_h, mid_gamma,1);
+
+%% Test 11 Parallel 756 Iterations (Specified Parallel Pool Partition
+
+Hes1_tissue_model_parallel_solve(max_D_d, mid_h, mid_gamma,1);
+
+%% Test 12 Parallel 1428 Iterations (Specified Parallel Pool Partition)
+
+Hes1_tissue_model_parallel_solve(max_D_d, max_h, max_gamma,1);
